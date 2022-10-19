@@ -1,0 +1,38 @@
+#!/bin/bash
+
+HOOK_DIR=$(dirname $(readlink -f $0))
+CHECK_PATCH=`git diff --cached | ${HOOK_DIR}/checkpatch.pl --no-tree --no-signoff`
+
+echo "======================================"
+echo "======Coding style check begins!======"
+echo
+echo "$CHECK_PATCH"
+echo
+echo "======Coding style check ends!========"
+echo "======================================"
+
+
+CHECK_RESULT=`echo "$CHECK_PATCH" | grep "total" | grep "error" | grep "warnings" | grep "lines"`
+CHECK_RESULT=`echo "$CHECK_RESULT" | awk -F: '{print $2}'`
+EN=0
+WN=0
+EN=`echo "$CHECK_RESULT" | awk '{print $1}'`
+WN=`echo "$CHECK_RESULT" | awk '{print $3}'`
+
+
+if [ "z$EN" == "z" ] && [ "z$WN" == "z" ]; then
+	echo -e "\n\n\n"
+	exit 0
+fi
+if [ $EN -eq 0 ] && [ $WN -eq 0 ]; then
+	echo -e "\n\n\n"
+	exit 0
+fi
+
+if [ $EN -gt 0 ] || [ $WN -gt 0 ]; then
+	echo "******Please fix your coding style and commit again!!!******"
+	echo "******You should follow the Linux Kernel Coding Style convention******"
+	echo "******Use \"git commit -s --no-verify\" to skip the patch check******"
+	echo -e "\n\n\n"
+	exit 1
+fi

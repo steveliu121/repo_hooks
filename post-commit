@@ -1,0 +1,31 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$(readlink -f ".git/COMMIT_EDITMSG")
+HOOK_DIR=$(dirname $(readlink -f $0))
+CHECK_MSG=`cat $COMMIT_MSG_FILE | ${HOOK_DIR}/chkmsg-fun.sh`
+
+echo "======================================"
+echo "=====Commit message check starts!====="
+echo ""
+echo "$CHECK_MSG"
+echo ""
+echo "=====Commit message check ends!======="
+echo "======================================"
+
+CHK_RES=`echo "$CHECK_MSG" | grep "errors" | grep "warning" | grep "total" | awk -F: '{print $2}'`
+EN=`echo "$CHK_RES" | awk '{print $1}'`
+WN=`echo "$CHK_RES" | awk '{print $3}'`
+
+
+if [ $EN -eq 0 ] && [ $WN -eq 0 ]; then
+	echo -e "\n\n\n"
+	exit 0
+fi
+
+if [ $EN -gt 0 ] || [ $WN -gt 0 ]; then
+	echo "******Please fix your commit message again!!!******"
+	echo "******You should follow the Git Commit Message convention in quip******"
+	echo "******Use \"git commit --amend\" to fix your commit message******"
+	echo -e "\n\n\n"
+	exit 1
+fi
